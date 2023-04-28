@@ -268,6 +268,7 @@ if (config.autoStart) {
 }
 
 app.get('/powerOn', (req, res) => {
+    simpleMode = false;
     let brightness = config.initBrightness || 1;
     if (req.query.brightness)
         brightness = parseInt(req.query.brightness);
@@ -277,10 +278,18 @@ app.get('/powerOn', (req, res) => {
     setPower(true, brightness);
     writeLine(lastLine1, {x: 0, y: 0});
     writeLineAuto(lastLine2, {x: 0, y: 2});
+    startClock();
+    if (config.autoHideSec) {
+        autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+    }
     console.log("Display Power Supply On");
     res.send('OK');
 });
 app.get('/powerOff', (req, res) => {
+    if (autoHideTimer) {
+        clearTimeout(autoHideTimer);
+        autoHideTimer = null;
+    }
     setPower(false)
     console.log("Display Power Supply Off");
     res.send('OK');
@@ -314,6 +323,18 @@ app.get('/enableSimpleClock', (req, res) => {
     startClock();
     console.log("Simple Clock Enabled");
     res.send('OK');
+});
+app.get('/wakeUp', (req, res) => {
+    simpleMode = false;
+    lastBrightness = config.initBrightness || 3;
+    resetDisplay();
+    if (config.wakeUpBrightness)
+        setBrightness(config.wakeUpBrightness);
+    console.log("Poke Display");
+    res.send('OK');
+    if (config.autoHideSec || req.query.timeout) {
+        autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
+    }
 });
 app.get('/reload', (req, res) => {
     simpleMode = false;
