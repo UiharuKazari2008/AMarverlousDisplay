@@ -1,0 +1,12 @@
+{
+    "serialPort": "COM50",
+    "enableAPI": true,
+    "autoStart": true,
+    "clock": {
+        "x": 110,
+        "y": 2
+    },
+    "initBrightness": 1,
+    "initLine1": "PlayLand Gau",
+    "initLine2": "Hello World, this is a default scroll line!"
+}
