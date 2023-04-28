@@ -7,11 +7,15 @@ A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Mar
     "serialPort": "COM50",
     "enableAPI": true,
     "autoStart": true,
+    "autoHideSec": 15,
+    "autoShutdownDisplayMin": 300, 
+    "simpleMode": false,
     "clock": {
         "x": 110,
         "y": 2
     },
     "initBrightness": 1,
+    "wakeUpBrightness": 3,
     "initLine1": "PlayLand Gau",
     "initLine2": "Hello World, this is a default scroll line!"
 }
@@ -19,9 +23,16 @@ A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Mar
 * COM Port or Path
 * Enable API
 * Enable Auto Power On
+* Timeout to Display Info
+* Auto Power Off Timer
+* Auto Dim Display and Show Only Clock after Timer
 * Sets Clock Position, if removed the clock is disabled and can not be used
 * Initial Brightness of Display
+* Brightness of Display when a line is written from simple mode
 * Initial Line 1 and 2
+
+Other Options
+* "simpleMode" No inital lines but if clock is enables it will be enabled and centered
 
 ## API Endpoints
 ### Power On - /powerOn
@@ -32,6 +43,12 @@ Disable Power Supply
 
 ### Reset - /reset
 Resets the Display and does not set any lines
+
+### Reload - /reload
+Exits Simple Mode and rewrites last display values
+
+### Enter Simple Mode - /enableSimpleClock
+Enables Simple Clock Mode
 
 ### Enable Clock - /enableClock
 Enable Clock Display and Updates

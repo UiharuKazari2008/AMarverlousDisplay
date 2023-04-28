@@ -2,11 +2,14 @@
     "serialPort": "COM50",
     "enableAPI": true,
     "autoStart": true,
+    "autoHideSec": 15,
+    "simpleMode": false,
     "clock": {
         "x": 110,
         "y": 2
     },
     "initBrightness": 1,
+    "wakeUpBrightness": 3,
     "initLine1": "PlayLand Gau",
     "initLine2": "Hello World, this is a default scroll line!"
 }

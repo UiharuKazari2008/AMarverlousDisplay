@@ -27,17 +27,25 @@ let lastLine2 = ''
 let lastBrightness = 1;
 let scrollEnabled = false;
 let clockEnabled = false;
+let simpleMode = config.simpleMode || false;
+let autoHideTimer = null;
+let autoPowerOffTimer = null;
+let powerState = false;
 
 const port = new SerialPort({path: config.serialPort || "COM50", baudRate: 115200 });
 
 app.get('/', (req, res) => { res.send('Display Driver API!'); });
 app.get('/ports', async (req, res) => { res.json(await SerialPort.list()); });
-
+// 20 columns
 function setPower(power, brightness) {
+    powerState = power;
     port.write(staticCommands.reset, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     port.write((power) ? staticCommands.power_on : staticCommands.power_off, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     if (power)
         port.write(staticCommands.brightness[brightness], (err) => { if (err) { console.error('Error on write: ', err.message) } });
+}
+function setBrightness(brightness) {
+    port.write(staticCommands.brightness[brightness], (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
 function writeLine(text, opts) {
     // x, y, charset
@@ -107,9 +115,12 @@ function writeLineAuto(text, opts) {
 function resetDisplay(noline2) {
     const brightness = lastBrightness || config.initBrightness || 1;
     setPower(true, brightness);
-    writeLine(lastLine1, {x: 0, y: 0});
-    if (!noline2)
-        writeLineAuto(lastLine2, {x: 0, y: 2});
+    if (!simpleMode) {
+        writeLine(lastLine1, {x: 0, y: 0});
+        if (!noline2)
+            writeLineAuto(lastLine2, {x: 0, y: 2});
+    }
+    writeClock();
 }
 function scrollLine(text, opts) {
     scrollEnabled = true;
@@ -203,8 +214,12 @@ function scrollRaw(text, opts) {
 
 function writeClock() {
     let time = moment().format(config.clock.format || "HH:mm")
-    time = time.padStart(time.length + 1)
-    writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0})
+    if (simpleMode) {
+        writeLine(new Uint8Array(Buffer.from(time)), {x: 60, y: 1})
+    } else {
+        time = time.padStart(time.length + 1)
+        writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0})
+    }
 }
 function startClock() {
     if (config.clock) {
@@ -219,22 +234,35 @@ function stopClock() {
     clearInterval(clockTimer)
     clockTimer = null;
 }
+function autoHide() {
+    clearTimeout(autoHideTimer);
+    autoHideTimer = null;
+    simpleMode = true;
+    lastBrightness = 1;
+    resetDisplay();
+    startClock();
+}
 
 console.log('Marvelous Display Driver v1 by Yukimi Kazari');
 
 if (config.autoStart) {
     setPower(true, config.initBrightness || 1);
     lastBrightness = config.initBrightness || 1;
-    if (config.initLine1) {
-        writeLine(config.initLine1, {x: 0, y: 0})
-        lastLine1 = config.initLine1
-    }
-    if (config.initLine2) {
-        writeLineAuto(config.initLine2, {x: 0, y: 2})
-        lastLine2 = config.initLine2
+    if (!simpleMode) {
+        if (config.initLine1) {
+            writeLine(config.initLine1, {x: 0, y: 0})
+            lastLine1 = config.initLine1
+        }
+        if (config.initLine2) {
+            writeLineAuto(config.initLine2, {x: 0, y: 2})
+            lastLine2 = config.initLine2
+        }
     }
     if (config.clock)
         startClock();
+    if (config.autoHideSec) {
+        autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+    }
 } else {
     console.log('Auto Start is disabled, You must call powerOn to start display!')
 }
@@ -279,30 +307,75 @@ app.get('/disableClock', (req, res) => {
     res.send('OK');
 });
 
+app.get('/enableSimpleClock', (req, res) => {
+    simpleMode = true;
+    lastBrightness = 1;
+    resetDisplay();
+    startClock();
+    console.log("Simple Clock Enabled");
+    res.send('OK');
+});
+app.get('/reload', (req, res) => {
+    simpleMode = false;
+    lastBrightness = config.initBrightness || 3;
+    resetDisplay();
+    console.log("Reloaded Display");
+    res.send('OK');
+});
+
+
 app.get('/setHeader', (req, res) => {
-    if (req.query.text) {
+    if (req.query.text && powerState) {
+        if (autoHideTimer) {
+            clearTimeout(autoHideTimer);
+            autoHideTimer = null;
+        }
+        if (simpleMode) {
+            simpleMode = false;
+            lastBrightness = config.initBrightness || 3;
+            resetDisplay();
+            if (config.wakeUpBrightness)
+                setBrightness(config.wakeUpBrightness);
+        }
         const textValue = req.query.text;
         writeLine(textValue, {x: 0, y: 0, clear: true});
         lastLine1 = textValue;
         console.log("Write Header: " + textValue);
         res.status(200).send(textValue);
+        if (config.autoHideSec) {
+            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        }
     } else {
         res.status(400).send('The query "text" is required!');
     }
 })
 app.get('/setStatus', (req, res) => {
-    if (req.query.text) {
+    if (req.query.text && powerState) {
+        if (autoHideTimer) {
+            clearTimeout(autoHideTimer);
+            autoHideTimer = null;
+        }
+        if (simpleMode) {
+            simpleMode = false;
+            lastBrightness = config.initBrightness || 3;
+            resetDisplay();
+            if (config.wakeUpBrightness)
+                setBrightness(config.wakeUpBrightness);
+        }
         const textValue = req.query.text;
         writeLineAuto(textValue, {x: 0, y: 2, clear: true});
         lastLine2 = textValue;
         console.log("Write Status: " + textValue);
         res.status(200).send(textValue);
+        if (config.autoHideSec) {
+            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        }
     } else {
         res.status(400).send('The query "text" is required!');
     }
 })
 app.get('/setText', (req, res) => {
-    if (req.query.text) {
+    if (req.query.text && powerState) {
         const textValue = req.query.text;
         console.log("Write Text: " + textValue);
         writeLine(textValue, {x: 0, y: 0, ...req.query, text: undefined});
