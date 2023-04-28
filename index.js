@@ -27,7 +27,7 @@ let lastLine2 = ''
 let lastBrightness = 1;
 let scrollEnabled = false;
 let clockEnabled = false;
-let simpleMode = config.simpleMode || false;
+let simpleMode = false;
 let autoHideTimer = null;
 let autoPowerOffTimer = null;
 let powerState = false;
@@ -294,6 +294,9 @@ app.get('/powerOff', (req, res) => {
     console.log("Display Power Supply Off");
     res.send('OK');
 });
+app.get('/powerState', (req, res) => {
+    res.send(powerState);
+});
 app.get('/reset', (req, res) => {
     let brightness = config.initBrightness || 1;
     if (req.query.brightness)
@@ -344,9 +347,11 @@ app.get('/reload', (req, res) => {
     res.send('OK');
 });
 
-
+app.get('/getHeader', (req, res) => {
+    res.send(lastLine1);
+});
 app.get('/setHeader', (req, res) => {
-    if (req.query.text && powerState) {
+    if (req.query.text && (powerState || (!powerState && config.powerOnWithText))) {
         if (autoHideTimer) {
             clearTimeout(autoHideTimer);
             autoHideTimer = null;
@@ -370,13 +375,16 @@ app.get('/setHeader', (req, res) => {
         res.status(400).send('The query "text" is required!');
     }
 })
+app.get('/getStatus', (req, res) => {
+    res.send(lastLine2);
+});
 app.get('/setStatus', (req, res) => {
-    if (req.query.text && powerState) {
+    if (req.query.text && (powerState || (!powerState && config.powerOnWithText))) {
         if (autoHideTimer) {
             clearTimeout(autoHideTimer);
             autoHideTimer = null;
         }
-        if (simpleMode) {``
+        if (simpleMode) {
             simpleMode = false;
             lastBrightness = config.initBrightness || 3;
             resetDisplay();

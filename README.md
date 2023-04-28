@@ -9,7 +9,7 @@ A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Mar
     "autoStart": true,
     "autoHideSec": 15,
     "autoShutdownDisplayMin": 300, 
-    "simpleMode": false,
+    "powerOnWithText": true,
     "clock": {
         "x": 110,
         "y": 2
@@ -23,9 +23,9 @@ A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Mar
 * COM Port or Path
 * Enable API
 * Enable Auto Power On
-* Timeout to Display Info
+* Auto Dim Display and Show Only Clock after Timer in seconds
 * Auto Power Off Timer
-* Auto Dim Display and Show Only Clock after Timer
+* Power On Display when off to display message
 * Sets Clock Position, if removed the clock is disabled and can not be used
 * Initial Brightness of Display
 * Brightness of Display when a line is written from simple mode

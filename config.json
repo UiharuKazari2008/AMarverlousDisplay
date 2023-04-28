@@ -3,7 +3,7 @@
     "enableAPI": true,
     "autoStart": true,
     "autoHideSec": 15,
-    "simpleMode": false,
+    "powerOnWithText": true,
     "clock": {
         "x": 110,
         "y": 2
