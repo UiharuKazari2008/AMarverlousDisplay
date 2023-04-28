@@ -64,6 +64,10 @@ Accepts "timeout" to set a custom display time (in simple mode)
 Requires Text Query - Sets the Last Line of the Display (Auto Scroll Detection)<br/>
 Accepts "timeout" to set a custom display time (in simple mode)
 
+### Set Both Lines - /setBoth
+Requires "header" and "status" - Sets both lines at the same time (Auto Scroll Detection)<br/>
+Accepts "timeout" to set a custom display time and "keepAwake" to disable timeout
+
 ### Set Text Manually - /setText
 Requires Text Query - Sets text to any position with optional parameters that can be found in the code
 

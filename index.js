@@ -356,19 +356,22 @@ app.get('/setHeader', (req, res) => {
             clearTimeout(autoHideTimer);
             autoHideTimer = null;
         }
-        if (simpleMode) {
+        const textValue = req.query.text;
+        lastLine1 = textValue;
+        if (simpleMode || !powerState) {
             simpleMode = false;
             lastBrightness = config.initBrightness || 3;
             resetDisplay();
             if (config.wakeUpBrightness)
                 setBrightness(config.wakeUpBrightness);
+        } else {
+            writeLine(textValue, {x: 0, y: 0, clear: true});
         }
-        const textValue = req.query.text;
-        writeLine(textValue, {x: 0, y: 0, clear: true});
-        lastLine1 = textValue;
         console.log("Write Header: " + textValue);
+        if (req.query.brightness)
+            setBrightness(parseInt(req.query.brightness.toString()));
         res.status(200).send(textValue);
-        if (config.autoHideSec || req.query.timeout) {
+        if (config.autoHideSec || req.query.timeout && !req.query.keepAwake) {
             autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {
@@ -384,19 +387,54 @@ app.get('/setStatus', (req, res) => {
             clearTimeout(autoHideTimer);
             autoHideTimer = null;
         }
-        if (simpleMode) {
+        const textValue = req.query.text;
+        lastLine2 = textValue;
+        if (simpleMode || !powerState) {
             simpleMode = false;
             lastBrightness = config.initBrightness || 3;
             resetDisplay();
             if (config.wakeUpBrightness)
                 setBrightness(config.wakeUpBrightness);
+        } else {
+            writeLineAuto(textValue, {x: 0, y: 2, clear: true});
         }
-        const textValue = req.query.text;
-        writeLineAuto(textValue, {x: 0, y: 2, clear: true});
-        lastLine2 = textValue;
         console.log("Write Status: " + textValue);
+        if (req.query.brightness)
+            setBrightness(parseInt(req.query.brightness.toString()));
         res.status(200).send(textValue);
-        if (config.autoHideSec || req.query.timeout) {
+        if (config.autoHideSec || req.query.timeout && !req.query.keepAwake) {
+            autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
+        }
+    } else {
+        res.status(400).send('The query "text" is required!');
+    }
+})
+app.get('/setBoth', (req, res) => {
+    if (req.query.header && req.query.status && (powerState || (!powerState && config.powerOnWithText))) {
+        if (autoHideTimer) {
+            clearTimeout(autoHideTimer);
+            autoHideTimer = null;
+        }
+        const header = req.query.header;
+        const status = req.query.status;
+        lastLine1 = header;
+        lastLine2 = status;
+        if (simpleMode || !powerState) {
+            simpleMode = false;
+            lastBrightness = config.initBrightness || 3;
+            resetDisplay();
+            if (config.wakeUpBrightness)
+                setBrightness(config.wakeUpBrightness);
+        } else {
+            writeLine(header, {x: 0, y: 0, clear: true});
+            writeLineAuto(status, {x: 0, y: 2, clear: true});
+        }
+        console.log("Write Header: " + header);
+        console.log("Write Status: " + status);
+        if (req.query.brightness)
+            setBrightness(parseInt(req.query.brightness.toString()));
+        res.status(200).send(header + '\n' + status);
+        if (config.autoHideSec || req.query.timeout && !req.query.keepAwake) {
             autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {
