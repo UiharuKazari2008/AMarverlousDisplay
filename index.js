@@ -319,7 +319,7 @@ app.get('/disableClock', (req, res) => {
     res.send('OK');
 });
 
-app.get('/enableSimpleClock', (req, res) => {
+app.get('/standby', (req, res) => {
     simpleMode = true;
     lastBrightness = 1;
     resetDisplay();

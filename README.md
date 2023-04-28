@@ -1,4 +1,4 @@
-# AMarverlousDisplay
+# A Marverlous Display
 A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Marvelous game
 
 ## Configuration
@@ -12,7 +12,8 @@ A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Mar
     "powerOnWithText": true,
     "clock": {
         "x": 110,
-        "y": 2
+        "y": 2,
+        "format": "HH:mm"
     },
     "initBrightness": 1,
     "wakeUpBrightness": 3,
@@ -20,57 +21,112 @@ A Simple Controller for a "Futaba VFD Serial Display" that is used in a very Mar
     "initLine2": "Hello World, this is a default scroll line!"
 }
 ```
-* COM Port or Path
-* Enable API
-* Enable Auto Power On
-* Auto Dim Display and Show Only Clock after Timer in seconds
-* Auto Power Off Timer
-* Power On Display when off to display message
-* Sets Clock Position, if removed the clock is disabled and can not be used
-* Initial Brightness of Display
-* Brightness of Display when a line is written from simple mode
-* Initial Line 1 and 2
-
-Other Options
-* "simpleMode" No inital lines but if clock is enables it will be enabled and centered
+* serialPort: COM Port or Path
+* apiPort: API Port
+* enableAPI: Enable API Endpoints
+* autoStart: Enable Auto Power On
+* autoHideSec: Auto Dim Display and Show Only Clock after Timer in seconds
+* autoShutdownDisplayMin: Auto Power Off Display Timer in minutes
+* powerOnWithText: Power On Display when off to display message
+* clock: Sets Clock Position, if removed the clock is disabled and can not be used
+* initBrightness: Initial Brightness of Display
+* wakeUpBrightness: Brightness of Display when a line is written from simple mode
+* initLine1/initLine2: Initial Line 1 and 2
 
 ## API Endpoints
-### Power On - /powerOn
+### Device Commands
+#### Power On - /powerOn
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
+
 Enable Power Supply
 
-### Power Off - /powerOff
-Disable Power Supply
+#### Power Off - /powerOff
+Disable Power Supply, useful to prevent burn in
 
-### Reset - /reset
-Resets the Display and does not set any lines
+#### Power State - /powerState
+Returns "true" or "false" if power is enabled
 
-### Reload - /reload
-Exits Simple Mode and rewrites last display values
+#### Reset - /reset
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
 
-### Enter Simple Mode - /enableSimpleClock
-Enables Simple Clock Mode
+Resets the Display, Does not set any data<br/>
+Useful if you want to briefly show custom messages with setText
 
-### Enable Clock - /enableClock
+#### Reload - /reload
+Exits standby and writes last display lines
+
+#### Standby Clock - /standby
+Jump to standby clock
+
+#### Wake up Display - /wakeUp
+* timeout = Integer in seconds before returning to standby clock
+
+Leaves standby and shows last display lines, will return to standby after timeout
+
+#### Enable Clock - /enableClock
 Enable Clock Display and Updates
 
-### Disable Clock - /disableClock
-Disable Clock Display and Updates, does not clear display so send another status
+#### Disable Clock - /disableClock
+Disable Clock Display and Updates
 
-### Set Line 1 - /setHeader
-Requires Text Query - Sets the First Line of the Display (No Auto Scroll Detection)<br/>
-Accepts "timeout" to set a custom display time (in simple mode)
+### Text Writing
+#### Set Line 1 - /setHeader
+* text = Text to display (No Auto Scroll Detection)
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
+* temp = Do not save text to memory (Useful for notifying of messages)
+* timeout = Integer in seconds before returning to standby clock
 
-### Set Line 2 - /setStatus
-Requires Text Query - Sets the Last Line of the Display (Auto Scroll Detection)<br/>
-Accepts "timeout" to set a custom display time (in simple mode)
+```
+LINE 1 <-
+LINE 2    CLOCK
+```
 
-### Set Both Lines - /setBoth
-Requires "header" and "status" - Sets both lines at the same time (Auto Scroll Detection)<br/>
-Accepts "timeout" to set a custom display time and "keepAwake" to disable timeout
+#### Set Line 2 - /setStatus
+* text = Text to display (Auto Scroll Detection)
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
+* temp = Do not save text to memory (Useful for notifying of messages)
+* timeout = Integer in seconds before returning to standby clock
 
-### Set Text Manually - /setText
-Requires Text Query - Sets text to any position with optional parameters that can be found in the code
+```
+LINE 1 
+LINE 2 <- CLOCK
+```
 
-### Set Raw Bytes - /setRaw
-Requires Bytes Query - Sets raw bytes to any position with optional parameters that can be found in the code
+#### Set Both Lines - /setBoth
+* header = Line 1 Text to display
+* status = Line 2 Text to display (Auto Scroll Detection)
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
+* temp = Do not save text to memory (Useful for notifying of messages)
+* timeout = Integer in seconds before returning to standby clock
 
+```
+LINE 1 <-
+LINE 2 <- CLOCK
+```
+
+#### Set Text Manually - /setText
+* text = Text to display (Auto Scroll Detection)
+* x = Column
+* y = Row (0-2)
+* charset = Character Language to ues
+* clear = Clear this line before writing
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
+* temp = Do not save text to memory (Useful for notifying of messages)
+* timeout = Integer in seconds before returning to standby clock
+
+Sets text in any position
+
+#### Set Scroll Manually - /setScroll
+* text = Text to display (Auto Scroll Detection)
+* x = Column
+* y = Row (0-2)
+* width = Width of scroll box
+* speed = Speed of scroll
+* padding = Padding of end of text
+* charset = Character Language to ues
+* clear = Clear this line before writing
+* brightness = 1-3 Integer Low to Max Phosphor Intensity
+* temp = Do not save text to memory (Useful for notifying of messages)
+* timeout = Integer in seconds before returning to standby clock
+
+Sets text in any position
