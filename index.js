@@ -342,8 +342,8 @@ app.get('/setHeader', (req, res) => {
         lastLine1 = textValue;
         console.log("Write Header: " + textValue);
         res.status(200).send(textValue);
-        if (config.autoHideSec) {
-            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        if (config.autoHideSec || req.query.timeout) {
+            autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {
         res.status(400).send('The query "text" is required!');
@@ -355,7 +355,7 @@ app.get('/setStatus', (req, res) => {
             clearTimeout(autoHideTimer);
             autoHideTimer = null;
         }
-        if (simpleMode) {
+        if (simpleMode) {``
             simpleMode = false;
             lastBrightness = config.initBrightness || 3;
             resetDisplay();
@@ -367,8 +367,8 @@ app.get('/setStatus', (req, res) => {
         lastLine2 = textValue;
         console.log("Write Status: " + textValue);
         res.status(200).send(textValue);
-        if (config.autoHideSec) {
-            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        if (config.autoHideSec || req.query.timeout) {
+            autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {
         res.status(400).send('The query "text" is required!');

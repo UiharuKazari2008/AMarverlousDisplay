@@ -57,10 +57,12 @@ Enable Clock Display and Updates
 Disable Clock Display and Updates, does not clear display so send another status
 
 ### Set Line 1 - /setHeader
-Requires Text Query - Sets the First Line of the Display (No Auto Scroll Detection)
+Requires Text Query - Sets the First Line of the Display (No Auto Scroll Detection)<br/>
+Accepts "timeout" to set a custom display time (in simple mode)
 
 ### Set Line 2 - /setStatus
-Requires Text Query - Sets the Last Line of the Display (Auto Scroll Detection)
+Requires Text Query - Sets the Last Line of the Display (Auto Scroll Detection)<br/>
+Accepts "timeout" to set a custom display time (in simple mode)
 
 ### Set Text Manually - /setText
 Requires Text Query - Sets text to any position with optional parameters that can be found in the code
