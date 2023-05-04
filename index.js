@@ -32,11 +32,18 @@ let autoHideTimer = null;
 let autoPowerOffTimer = null;
 let powerState = false;
 
+// Display Must to powered on after a reset command
+// 20 columns
+// 2 Lines and 1 Center Line
+
+// Open COM port
 const port = new SerialPort({path: config.serialPort || "COM50", baudRate: 115200 });
 
+// General Placeholder to verify access
 app.get('/', (req, res) => { res.send('Display Driver API!'); });
 app.get('/ports', async (req, res) => { res.json(await SerialPort.list()); });
-// 20 columns
+
+// Set VFD Power Supply state and Brightness
 function setPower(power, brightness) {
     powerState = power;
     port.write(staticCommands.reset, (err) => { if (err) { console.error('Error on write: ', err.message) } });
@@ -44,11 +51,16 @@ function setPower(power, brightness) {
     if (power)
         port.write(staticCommands.brightness[brightness], (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
+// Set VFD Brightness (1-3, Low to Max)
+// Very slight changes but could help with longesvity
 function setBrightness(brightness) {
     port.write(staticCommands.brightness[brightness], (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
+// Write a line to the display and options
+// .clear : Clear Line on display before writing (When writing it will overlap last line)
+// .x, y : Cursor position on display
+// .charset : Character Set to use (See Manual for details)
 function writeLine(text, opts) {
-    // x, y, charset
     if (opts.clear) {
         port.write(staticCommands.cursor, (err) => { if (err) { console.error('Error on write: ', err.message) } });
         if (opts && (opts.x !== undefined && opts.y !== undefined)) {
@@ -62,7 +74,7 @@ function writeLine(text, opts) {
         } else {
             port.write(new Uint8Array(Buffer.from(['0x00','0x00','0x00'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
-        port.write(new Uint8Array(Buffer.from(['0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40',
+        port.write(new Uint8Array(Buffer.from([
             '0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40',
             '0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40','0x81', '0x40'
         ])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
@@ -87,6 +99,10 @@ function writeLine(text, opts) {
     }
     port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
+// Write a line to the display and options
+// If line is to long then it will auto scroll
+// Mainly used when the clock is on the display
+// See options for Scroll
 function writeLineAuto(text, opts) {
     if (text.length > 13) {
         scrollLine(text, {
@@ -112,6 +128,8 @@ function writeLineAuto(text, opts) {
             writeClock();
     }
 }
+// Reset the display and restore previous liness
+// If noLine2 is set then it will no write the status line
 function resetDisplay(noline2) {
     const brightness = lastBrightness || config.initBrightness || 1;
     setPower(true, brightness);
@@ -122,6 +140,12 @@ function resetDisplay(noline2) {
     }
     writeClock();
 }
+// Create a scroll box to display a line of scrolling text
+// No need to clear the line as the scrollbox will overwrite that area
+// .x, y : Cursor position on display
+// .charset : Character Set to use (See Manual for details)
+// .width : Width of scroll box
+// .speed : Speed of scrolling text (1-15, I don't fully understand the equation but i know the values)
 function scrollLine(text, opts) {
     scrollEnabled = true;
     port.write(staticCommands.scroll_cursor, (err) => { if (err) { console.error('Error on write: ', err.message) } });
@@ -167,6 +191,12 @@ function scrollLine(text, opts) {
     port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     port.write(staticCommands.scroll_start, (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
+// Create a scroll box to display a line of scrolling raw text bytes
+// No need to clear the line as the scrollbox will overwrite that area
+// .x, y : Cursor position on display
+// .charset : Character Set to use (See Manual for details)
+// .width : Width of scroll box
+// .speed : Speed of scrolling text (1-15, I don't fully understand the equation but i know the values)
 function scrollRaw(text, opts) {
     scrollEnabled = true;
     port.write(staticCommands.scroll_cursor, (err) => { if (err) { console.error('Error on write: ', err.message) } });
@@ -212,6 +242,8 @@ function scrollRaw(text, opts) {
     port.write(staticCommands.scroll_start, (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
 
+// Write the formatted Clock in the designated area
+// Location is determined if its in hidden mode or not
 function writeClock() {
     let time = moment().format(config.clock.format || "HH:mm")
     if (simpleMode) {
@@ -221,6 +253,7 @@ function writeClock() {
         writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0})
     }
 }
+// Start the clock refresh timer
 function startClock() {
     if (config.clock) {
         writeClock();
@@ -229,11 +262,13 @@ function startClock() {
         clockTimer = setInterval(writeClock, 5000)
     }
 }
+// Stop the clock refresh timer
 function stopClock() {
     clockEnabled = false;
     clearInterval(clockTimer)
     clockTimer = null;
 }
+// Start the auto hide clock display
 function autoHide() {
     clearTimeout(autoHideTimer);
     autoHideTimer = null;
