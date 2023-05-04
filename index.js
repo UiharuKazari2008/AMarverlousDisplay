@@ -371,7 +371,7 @@ app.get('/setHeader', (req, res) => {
         if (req.query.brightness)
             setBrightness(parseInt(req.query.brightness.toString()));
         res.status(200).send(textValue);
-        if (config.autoHideSec || req.query.timeout && !req.query.keepAwake) {
+        if ((config.autoHideSec || req.query.timeout) && !req.query.keepAwake) {
             autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {
@@ -402,7 +402,7 @@ app.get('/setStatus', (req, res) => {
         if (req.query.brightness)
             setBrightness(parseInt(req.query.brightness.toString()));
         res.status(200).send(textValue);
-        if (config.autoHideSec || req.query.timeout && !req.query.keepAwake) {
+        if ((config.autoHideSec || req.query.timeout) && !req.query.keepAwake) {
             autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {
@@ -434,7 +434,7 @@ app.get('/setBoth', (req, res) => {
         if (req.query.brightness)
             setBrightness(parseInt(req.query.brightness.toString()));
         res.status(200).send(header + '\n' + status);
-        if (config.autoHideSec || req.query.timeout && !req.query.keepAwake) {
+        if ((config.autoHideSec || req.query.timeout) && !req.query.keepAwake) {
             autoHideTimer = setTimeout(autoHide, ((req.query.timeout) ? parseInt(req.query.timeout.toString()) : config.autoHideSec) * 1000);
         }
     } else {

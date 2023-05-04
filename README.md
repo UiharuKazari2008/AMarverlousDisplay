@@ -75,6 +75,7 @@ Disable Clock Display and Updates
 * brightness = 1-3 Integer Low to Max Phosphor Intensity
 * temp = Do not save text to memory (Useful for notifying of messages)
 * timeout = Integer in seconds before returning to standby clock
+* keepAwake = true, Keeps display on regardless of the auto hide
 
 ```
 LINE 1 <-
@@ -86,6 +87,7 @@ LINE 2    CLOCK
 * brightness = 1-3 Integer Low to Max Phosphor Intensity
 * temp = Do not save text to memory (Useful for notifying of messages)
 * timeout = Integer in seconds before returning to standby clock
+* keepAwake = true, Keeps display on regardless of the auto hide
 
 ```
 LINE 1 
@@ -98,6 +100,7 @@ LINE 2 <- CLOCK
 * brightness = 1-3 Integer Low to Max Phosphor Intensity
 * temp = Do not save text to memory (Useful for notifying of messages)
 * timeout = Integer in seconds before returning to standby clock
+* keepAwake = true, Keeps display on regardless of the auto hide
 
 ```
 LINE 1 <-
