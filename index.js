@@ -40,6 +40,11 @@ let powerState = false;
 const port = new SerialPort({path: config.serialPort || "COM50", baudRate: 115200 });
 
 // General Placeholder to verify access
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+});
 app.get('/', (req, res) => { res.send('Display Driver API!'); });
 app.get('/ports', async (req, res) => { res.json(await SerialPort.list()); });
 
