@@ -133,3 +133,14 @@ Sets text in any position
 * timeout = Integer in seconds before returning to standby clock
 
 Sets text in any position
+
+### Message Queueing
+You can send "messages" to the API and add them to a stack that can be displayed and dismissed with a HTTP Button
+#### Display a message - /addMessage
+* header = Line 1 Text to display
+* status = Line 2 Text to display (Auto Scroll Detection)
+
+Display will be wakened up and message will be displayed without timeout until you dismiss the message
+
+#### Dismiss the message - /nextMessage
+Dismiss the message and display the next message or return to the display mode

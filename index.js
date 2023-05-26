@@ -143,7 +143,7 @@ function resetDisplay(noline2) {
     const brightness = lastBrightness || config.initBrightness || 1;
     setPower(true, brightness);
     if (!simpleMode) {
-        writeLine((activeMessages) ? (((messages.length > 1) ? '[!' + messages.length + '] ' : '[!] ') + lastMsg1) : lastLine1, {x: 0, y: 0});
+        writeLine((activeMessages) ? `[!${(messages.length > 0) ? messages.length : ''}] ${lastMsg1}` : lastLine1, {x: 0, y: 0});
         if (!noline2)
             writeLineAuto((activeMessages) ? lastMsg2 : lastLine2, {x: 0, y: 2});
     }
@@ -320,7 +320,7 @@ app.get('/powerOn', (req, res) => {
         brightness = 3;
     lastBrightness = brightness;
     setPower(true, brightness);
-    writeLine((activeMessages) ? (((messages.length > 1) ? '[!' + messages.length + '] ' : '[!] ') + lastMsg1) : lastLine1, {x: 0, y: 0});
+    writeLine((activeMessages) ? `[!${(messages.length > 0) ? messages.length : ''}] ${lastMsg1}` : lastLine1, {x: 0, y: 0});
     writeLineAuto((activeMessages) ? lastMsg2 : lastLine2, {x: 0, y: 2});
     startClock();
     if (config.autoHideSec) {
@@ -392,7 +392,7 @@ app.get('/reload', (req, res) => {
 });
 
 app.get('/getHeader', (req, res) => {
-    res.send((activeMessages) ? (((messages.length > 1) ? '[!' + messages.length + '] ' : '[!] ') + lastMsg1) : lastLine1);
+    res.send((activeMessages) ? `[!${(messages.length > 0) ? messages.length : ''}] ${lastMsg1}` : lastLine1);
 });
 app.get('/setHeader', (req, res) => {
     if (req.query.text && (powerState || (!powerState && config.powerOnWithText))) {
@@ -520,7 +520,7 @@ app.get('/addMessage', (req, res) => {
     lastMsg2 = status;
     clearTimeout(autoHideTimer);
     autoHideTimer = null;
-    if (messages.length > 0 || !activeMessages) {
+    if (!activeMessages && messages.length === 0) {
         activeMessages = true;
         if (simpleMode || !powerState) {
             simpleMode = false;
@@ -532,16 +532,22 @@ app.get('/addMessage', (req, res) => {
         console.log("Write Header: " + header);
         console.log("Write Status: " + status);
         setBrightness(3);
-        res.status(200).send('Displayed')
+        res.status(200).send('Displayed');
     } else {
         messages.push([header, status])
+        resetDisplay();
         res.status(200).send('Qed')
     }
 })
 app.get('/nextMessage', (req, res) => {
-    if (activeMessages) {
+    clearTimeout(autoHideTimer);
+    autoHideTimer = null;
+    if (messages.length === 0) {
         activeMessages = false;
         resetDisplay();
+        if (config.autoHideSec) {
+            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        }
         res.status(200).send('Empty')
     } else {
         const nextMsg = messages.pop()
@@ -551,7 +557,7 @@ app.get('/nextMessage', (req, res) => {
             simpleMode = false;
             resetDisplay();
         } else {
-            writeLine((((messages.length > 1) ? '[!' + messages.length + '] ' : '[!] ') + lastMsg1), {x: 0, y: 0, clear: true});
+            writeLine(`[!${(messages.length > 0) ? messages.length : ''}] ${lastMsg1}`, {x: 0, y: 0, clear: true});
             writeLineAuto(lastMsg2, {x: 0, y: 2, clear: true});
         }
         res.status(200).send('Next')
