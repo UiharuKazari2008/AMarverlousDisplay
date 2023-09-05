@@ -32,6 +32,7 @@ let clockEnabled = false;
 let simpleMode = false;
 let autoHideTimer = null;
 let autoPowerOffTimer = null;
+let resetTimer = null;
 let powerState = false;
 let messages = [];
 let activeMessages = false;
@@ -59,6 +60,10 @@ function setPower(power, brightness) {
     port.write((power) ? staticCommands.power_on : staticCommands.power_off, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     if (power)
         port.write(staticCommands.brightness[brightness], (err) => { if (err) { console.error('Error on write: ', err.message) } });
+    if (!power) {
+        messages = [];
+        activeMessages = false;
+    }
 }
 // Set VFD Brightness (1-3, Low to Max)
 // Very slight changes but could help with longesvity
@@ -508,6 +513,19 @@ app.get('/setText', (req, res) => {
         console.log("Write Text: " + textValue);
         writeLine(textValue, {x: 0, y: 0, ...req.query, text: undefined});
         res.status(200).send(textValue);
+    } else {
+        res.status(400).send('The query "text" is required!');
+    }
+})
+app.get('/alertBoth', (req, res) => {
+    if (req.query.header && req.query.status && (powerState || (!powerState && config.powerOnWithText))) {
+        const header = req.query.header;
+        const status = req.query.status;
+
+        writeLine(header, {x: 0, y: 0, clear: true});
+        writeLineAuto(status, {x: 0, y: 2, clear: true});
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(resetDisplay, 5000);
     } else {
         res.status(400).send('The query "text" is required!');
     }
