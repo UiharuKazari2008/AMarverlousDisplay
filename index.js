@@ -529,8 +529,15 @@ app.get('/alertBoth', (req, res) => {
         setBrightness(3);
         writeLine(header, {x: 0, y: 0, clear: true});
         writeLineAuto(status, {x: 0, y: 2, clear: true});
+        clearTimeout(autoHideTimer);
+        autoHideTimer = null;
         clearTimeout(resetTimer);
-        resetTimer = setTimeout(resetDisplay, 5000);
+        resetTimer = null;
+        if (config.autoHideSec) {
+            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        } else {
+            resetTimer = setTimeout(resetDisplay, 5000);
+        }
         res.status(200).send('Displayed');
     } else {
         res.status(400).send('The query "text" is required!');
