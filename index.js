@@ -529,6 +529,9 @@ app.get('/alertBoth', (req, res) => {
         setBrightness(3);
         writeLineAuto(header, {x: 0, y: 0, clear: true});
         writeLine(status, {x: 0, y: 2, clear: true});
+        if (config.clock) {
+            writeClock();
+        }
         clearTimeout(autoHideTimer);
         autoHideTimer = null;
         clearTimeout(resetTimer);
