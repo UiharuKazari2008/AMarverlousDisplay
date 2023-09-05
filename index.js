@@ -527,8 +527,8 @@ app.get('/alertBoth', (req, res) => {
             resetDisplay();
         }
         setBrightness(3);
-        writeLine(header, {x: 0, y: 0, clear: true});
-        writeLineAuto(status, {x: 0, y: 2, clear: true});
+        writeLineAuto(header, {x: 0, y: 0, clear: true});
+        writeLine(status, {x: 0, y: 2, clear: true});
         clearTimeout(autoHideTimer);
         autoHideTimer = null;
         clearTimeout(resetTimer);
