@@ -529,6 +529,11 @@ app.get('/alertBoth', (req, res) => {
         setBrightness(3);
         writeLineAuto(header, {x: 0, y: 0, clear: true});
         writeLine(status, {x: 0, y: 2, clear: true});
+        if (config.clock) {
+            let time = moment().format(config.clock.format || "HH:mm")
+            time = time.padStart(time.length + 1)
+            writeLine(new Uint8Array(Buffer.from(time)), {x: 110, y: 2})
+        }
         clearTimeout(autoHideTimer);
         autoHideTimer = null;
         clearTimeout(resetTimer);
