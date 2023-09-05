@@ -123,9 +123,8 @@ function writeLineAuto(text, opts) {
             x: 0,
             y: 2,
             speed: 15,
-            width: 105,
             padding: 10,
-            width: (text.length > 20 && !(opts && opts.y === 2)) ? 20 : undefined,
+            width: (!(opts && opts.y === 2)) ? 120 : 105,
             ...opts,
         })
     } else {
