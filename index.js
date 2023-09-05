@@ -522,10 +522,16 @@ app.get('/alertBoth', (req, res) => {
         const header = req.query.header;
         const status = req.query.status;
 
+        if (simpleMode || !powerState) {
+            simpleMode = false;
+            resetDisplay();
+        }
+        setBrightness(3);
         writeLine(header, {x: 0, y: 0, clear: true});
         writeLineAuto(status, {x: 0, y: 2, clear: true});
         clearTimeout(resetTimer);
         resetTimer = setTimeout(resetDisplay, 5000);
+        res.status(200).send('Displayed');
     } else {
         res.status(400).send('The query "text" is required!');
     }
