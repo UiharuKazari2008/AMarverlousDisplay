@@ -118,7 +118,7 @@ function writeLine(text, opts) {
 // Mainly used when the clock is on the display
 // See options for Scroll
 function writeLineAuto(text, opts) {
-    if ((text.length > 13 && !(opts && opts.y === 1)) || (text.length > 20 && !(opts && opts.y === 2))) {
+    if ((text.length > 13 && !(opts && opts.y === 0)) || (text.length > 20 && !(opts && opts.y === 2))) {
         scrollLine(text, {
             x: 0,
             y: 2,
