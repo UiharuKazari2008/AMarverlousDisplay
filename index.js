@@ -530,6 +530,7 @@ app.get('/alertBoth', (req, res) => {
         writeLineAuto(header, {x: 0, y: 0, clear: true});
         writeLine(status, {x: 0, y: 2, clear: true});
         if (config.clock) {
+            simpleMode = false;
             writeClock();
         }
         clearTimeout(autoHideTimer);
