@@ -125,6 +125,7 @@ function writeLineAuto(text, opts) {
             speed: 15,
             width: 105,
             padding: 10,
+            width: (text.length > 20 && !(opts && opts.y === 2)) ? 20 : undefined,
             ...opts,
         })
     } else {
