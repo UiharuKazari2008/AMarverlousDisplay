@@ -522,11 +522,10 @@ app.get('/alertBoth', (req, res) => {
         const header = req.query.header;
         const status = req.query.status;
 
-        if (simpleMode || !powerState) {
-            simpleMode = false;
-            resetDisplay();
+        simpleMode = false;
+        if (!powerState) {
+            setPower(true, 3);
         }
-        setBrightness(3);
         writeLineAuto(header, {x: 0, y: 0, clear: true});
         writeLine(status, {x: 0, y: 2, clear: true});
         if (config.clock) {
