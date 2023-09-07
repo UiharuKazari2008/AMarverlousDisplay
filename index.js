@@ -116,6 +116,8 @@ function writeLine(text, opts) {
         port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     } else {
         text.split('$$').map(line => {
+            console.log(line)
+            console.log(line.substring(line.length - 1))
             if (line.substring(line.length - 1) === "@") {
                 console.log(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])))
                 port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
