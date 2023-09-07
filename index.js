@@ -113,7 +113,7 @@ function writeLine(text, opts) {
     }
     console.log(text)
     if (opts.raw) {
-        port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+        port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     } else {
         text.split('$#').map(line => {
             if (line.endsWith("#$")) {
