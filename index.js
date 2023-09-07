@@ -111,7 +111,7 @@ function writeLine(text, opts) {
     } else {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
-    text.split('$#').map(line => {
+    text.toString().split('$#').map(line => {
         if (line.endsWith("#$")) {
             line.split(":").map(e => {
                 switch(e.substring(0, 1)) {
