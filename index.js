@@ -115,8 +115,8 @@ function writeLine(text, opts) {
     if (opts.raw) {
         port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     } else {
-        text.split('$#').map(line => {
-            if (line.endsWith("#$")) {
+        text.split('$$').map(line => {
+            if (line.endsWith(";;")) {
                 port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 2).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
             } else {
                 port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
