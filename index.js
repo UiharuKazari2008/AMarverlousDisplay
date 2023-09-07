@@ -224,19 +224,13 @@ function scrollLine(text, opts) {
     byteArrayL[0] = getTextLength(text);
     port.write(byteArrayL, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     text.split('$$').map((line,i,a) => {
-        console.log(i)
-        console.log(a.length)
-        console.log(i + 1 === a.length)
-        console.log(line.length)
-        console.log(line.length + ((i + 1 === a.length) ? (opts.padding || 0) : 0))
         if (line.substring(line.length - 1) === "@") {
             port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-            if (i + 1 === a.length) {
-                port.write("".padEnd(line.length + opts.padding || 0), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-            }
         } else  {
-            const bufferText = new Uint8Array(Buffer.from(line.padEnd(line.length + ((i + 1 === a.length) ? (opts.padding || 0) : 0))));
-            port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+        }
+        if (i + 1 === a.length && opts.padding) {
+            port.write(Array(opts.padding).fill(['0x81', '0x40']).reduce((a, b) => a.concat(b)), (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
     })
     port.write(staticCommands.scroll_start, (err) => { if (err) { console.error('Error on write: ', err.message) } });
