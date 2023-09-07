@@ -224,13 +224,16 @@ function scrollLine(text, opts) {
     byteArrayL[0] = getTextLength(text);
     port.write(byteArrayL, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     text.split('$$').map((line,i,a) => {
+        console.log(i)
+        console.log(a.length)
+        console.log(i + 1 === a.length)
         if (line.substring(line.length - 1) === "@") {
             port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-            if (parseInt(i) + 1 === a.length) {
+            if (i + 1 === a.length) {
                 port.write("".padEnd(line.length + opts.padding || 0), (err) => { if (err) { console.error('Error on write: ', err.message) } });
             }
         } else  {
-            const bufferText = new Uint8Array(Buffer.from(line.padEnd(line.length + ((parseInt(i) + 1 === a.length) ? (opts.padding || 0) : 0))));
+            const bufferText = new Uint8Array(Buffer.from(line.padEnd(line.length + ((i + 1 === a.length) ? (opts.padding || 0) : 0))));
             port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
     })
