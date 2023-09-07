@@ -227,7 +227,7 @@ function scrollLine(text, opts) {
     }
     port.write(staticCommands.scroll_set, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     const byteArrayL = new Uint8Array(1);
-    byteArrayL[0] = bufferText.length;
+    byteArrayL[0] = getTextLength(text);
     port.write(byteArrayL, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     text.split('$$').map((line,i,a) => {
         if (line.substring(line.length - 1) === "@") {
