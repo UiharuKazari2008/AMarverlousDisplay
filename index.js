@@ -127,12 +127,26 @@ function writeLine(text, opts) {
         })
     }
 }
+function getTextLength(text) {
+    let textLength = 0;
+    text.split('$$').map(line => {
+        console.log(line)
+        console.log(line.substring(line.length - 1))
+        if (line.substring(line.length - 1) === "@") {
+            textLength += line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).length
+        } else {
+            textLength += line.length
+        }
+    })
+    return textLength
+}
 // Write a line to the display and options
 // If line is to long then it will auto scroll
 // Mainly used when the clock is on the display
 // See options for Scroll
 function writeLineAuto(text, opts) {
-    if ((text.length > 13 && !(opts && opts.y === 0)) || (text.length > 20 && !(opts && opts.y === 2))) {
+    const textLength = getTextLength(text);
+    if ((textLength > 13 && !(opts && opts.y === 0)) || (textLength > 20 && !(opts && opts.y === 2))) {
         scrollLine(text, {
             x: 0,
             y: 2,
@@ -212,11 +226,20 @@ function scrollLine(text, opts) {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
     port.write(staticCommands.scroll_set, (err) => { if (err) { console.error('Error on write: ', err.message) } });
-    const bufferText = new Uint8Array(Buffer.from(text.padEnd(text.length + (opts.padding || 0))));
     const byteArrayL = new Uint8Array(1);
     byteArrayL[0] = bufferText.length;
     port.write(byteArrayL, (err) => { if (err) { console.error('Error on write: ', err.message) } });
-    port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+    text.split('$$').map((line,i,a) => {
+        if (line.substring(line.length - 1) === "@") {
+            port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            if (i + 1 === a.length) {
+                port.write("".padEnd(line.length + opts.padding || 0), (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            }
+        } else  {
+            const bufferText = new Uint8Array(Buffer.from(line.padEnd(line.length + ((i + 1 === a.length) ? (opts.padding || 0) : 0))));
+            port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+        }
+    })
     port.write(staticCommands.scroll_start, (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
 // Create a scroll box to display a line of scrolling raw text bytes
