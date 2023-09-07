@@ -227,6 +227,8 @@ function scrollLine(text, opts) {
         console.log(i)
         console.log(a.length)
         console.log(i + 1 === a.length)
+        console.log(line.length)
+        console.log(line.length + ((i + 1 === a.length) ? (opts.padding || 0) : 0))
         if (line.substring(line.length - 1) === "@") {
             port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
             if (i + 1 === a.length) {
