@@ -112,13 +112,17 @@ function writeLine(text, opts) {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
     console.log(text)
-    text.split('$#').map(line => {
-        if (line.endsWith("#$")) {
-            port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 2).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-        } else {
-            port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
-        }
-    })
+    if (opts.raw) {
+        port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+    } else {
+        text.split('$#').map(line => {
+            if (line.endsWith("#$")) {
+                port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 2).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            } else {
+                port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            }
+        })
+    }
 }
 // Write a line to the display and options
 // If line is to long then it will auto scroll
@@ -268,10 +272,10 @@ function scrollRaw(text, opts) {
 function writeClock() {
     let time = moment().format(config.clock.format || "HH:mm")
     if (simpleMode) {
-        writeLine(new Uint8Array(Buffer.from(time)), {x: 60, y: 1})
+        writeLine(new Uint8Array(Buffer.from(time)), {x: 60, y: 1, raw: true})
     } else {
         time = time.padStart(time.length + 1)
-        writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0})
+        writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0, raw: true})
     }
 }
 // Start the clock refresh timer
@@ -538,7 +542,7 @@ app.get('/alertBoth', (req, res) => {
         if (config.clock) {
             let time = moment().format(config.clock.format || "HH:mm")
             time = time.padStart(time.length + 1)
-            writeLine(new Uint8Array(Buffer.from(time)), {x: 110, y: 2})
+            writeLine(new Uint8Array(Buffer.from(time)), {x: 110, y: 2, raw: true})
         }
         clearTimeout(autoHideTimer);
         autoHideTimer = null;
