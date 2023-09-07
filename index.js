@@ -111,20 +111,10 @@ function writeLine(text, opts) {
     } else {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
-    text.toString().split('$#').map(line => {
+    console.log(text)
+    text.split('$#').map(line => {
         if (line.endsWith("#$")) {
-            line.split(":").map(e => {
-                switch(e.substring(0, 1)) {
-                    case "l":
-                        port.write(staticCommands.charset, (err) => { if (err) { console.error('Error on write: ', err.message) } });
-                        port.write(new Uint8Array(Buffer.from(e.substring(1).split(/(..)/g).filter(s => s).map(s => "0x" + s))), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-                        break;
-                    default:
-                        port.write(new Uint8Array(Buffer.from(e.split(/(..)/g).filter(s => s).map(s => "0x" + s))), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-                        break;
-                }
-            })
-
+            port.write(new Uint8Array(Buffer.from(line.substring(0, line.length - 2).split(/(..)/g).filter(s => s).map(s => "0x" + s))), (err) => { if (err) { console.error('Error on write: ', err.message) } });
         } else {
             port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
