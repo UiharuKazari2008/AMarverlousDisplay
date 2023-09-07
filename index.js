@@ -111,15 +111,11 @@ function writeLine(text, opts) {
     } else {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
-    console.log(text)
     if (opts.raw) {
         port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
     } else {
         text.split('$$').map(line => {
-            console.log(line)
-            console.log(line.substring(line.length - 1))
             if (line.substring(line.length - 1) === "@") {
-                console.log(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])))
                 port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
             } else {
                 port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
@@ -130,8 +126,6 @@ function writeLine(text, opts) {
 function getTextLength(text) {
     let textLength = 0;
     text.split('$$').map(line => {
-        console.log(line)
-        console.log(line.substring(line.length - 1))
         if (line.substring(line.length - 1) === "@") {
             textLength += line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).length
         } else {
@@ -232,11 +226,11 @@ function scrollLine(text, opts) {
     text.split('$$').map((line,i,a) => {
         if (line.substring(line.length - 1) === "@") {
             port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
-            if (i + 1 === a.length) {
+            if (parseInt(i) + 1 === a.length) {
                 port.write("".padEnd(line.length + opts.padding || 0), (err) => { if (err) { console.error('Error on write: ', err.message) } });
             }
         } else  {
-            const bufferText = new Uint8Array(Buffer.from(line.padEnd(line.length + ((i + 1 === a.length) ? (opts.padding || 0) : 0))));
+            const bufferText = new Uint8Array(Buffer.from(line.padEnd(line.length + ((parseInt(i) + 1 === a.length) ? (opts.padding || 0) : 0))));
             port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
     })
