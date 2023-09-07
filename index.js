@@ -230,6 +230,7 @@ function scrollLine(text, opts) {
             port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
         if (i + 1 === a.length && opts.padding) {
+            console.log(Array(opts.padding).fill(['0x81', '0x40']).reduce((a, b) => a.concat(b)))
             port.write(Array(opts.padding).fill(['0x81', '0x40']).reduce((a, b) => a.concat(b)), (err) => { if (err) { console.error('Error on write: ', err.message) } });
         }
     })
