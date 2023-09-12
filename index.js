@@ -30,6 +30,7 @@ let lastBrightness = 1;
 let scrollEnabled = false;
 let clockEnabled = false;
 let simpleMode = false;
+let centerUsed = false;
 let autoHideTimer = null;
 let autoPowerOffTimer = null;
 let resetTimer = null;
@@ -146,6 +147,7 @@ function writeLineAuto(text, opts) {
 // If noLine2 is set then it will no write the status line
 function resetDisplay(noline2) {
     const brightness = lastBrightness || config.initBrightness || 1;
+    centerUsed = false;
     setPower(true, brightness);
     if (!simpleMode) {
         writeLine((activeMessages) ? `[!${(messages.length > 0) ? messages.length : ''}] ${lastMsg1}` : lastLine1, {x: 0, y: 0});
@@ -260,7 +262,9 @@ function scrollRaw(text, opts) {
 // Location is determined if its in hidden mode or not
 function writeClock() {
     let time = moment().format(config.clock.format || "HH:mm")
-    if (simpleMode) {
+    if (centerUsed) {
+
+    } else if (simpleMode) {
         writeLine(new Uint8Array(Buffer.from(time)), {x: 60, y: 1})
     } else {
         time = time.padStart(time.length + 1)
@@ -287,6 +291,7 @@ function autoHide() {
     clearTimeout(autoHideTimer);
     autoHideTimer = null;
     simpleMode = true;
+    centerUsed = false;
     lastBrightness = 1;
     resetDisplay();
     startClock();
@@ -517,12 +522,39 @@ app.get('/setText', (req, res) => {
         res.status(400).send('The query "text" is required!');
     }
 })
+app.get('/alertCenter', (req, res) => {
+    if (req.query.header && (powerState || (!powerState && config.powerOnWithText))) {
+        const header = req.query.header;
+
+        simpleMode = false;
+        if (!powerState) {
+            setPower(true, 3);
+        }
+        writeLine("", {x: 0, y: 0, clear: true});
+        writeLine("", {x: 0, y: 2, clear: true});
+        writeLineAuto(header, {x: 0, y: 1, clear: true});
+        clearTimeout(autoHideTimer);
+        autoHideTimer = null;
+        clearTimeout(resetTimer);
+        resetTimer = null;
+        if (config.autoHideSec) {
+            autoHideTimer = setTimeout(autoHide, config.autoHideSec * 1000);
+        } else {
+            resetTimer = setTimeout(resetDisplay, 5000);
+        }
+        res.status(200).send('Displayed');
+    } else {
+        res.status(400).send('The query "text" is required!');
+    }
+})
+
 app.get('/alertBoth', (req, res) => {
     if (req.query.header && req.query.status && (powerState || (!powerState && config.powerOnWithText))) {
         const header = req.query.header;
         const status = req.query.status;
 
         simpleMode = false;
+        centerUsed = true;
         if (!powerState) {
             setPower(true, 3);
         }
