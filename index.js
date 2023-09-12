@@ -553,11 +553,13 @@ app.get('/setText', (req, res) => {
         res.status(400).send('The query "text" is required!');
     }
 })
+
 app.get('/alertCenter', (req, res) => {
     if (req.query.header && (powerState || (!powerState && config.powerOnWithText))) {
         const header = req.query.header;
 
         simpleMode = false;
+        centerUsed = true;
         if (!powerState) {
             setPower(true, 3);
         }
@@ -578,14 +580,12 @@ app.get('/alertCenter', (req, res) => {
         res.status(400).send('The query "text" is required!');
     }
 })
-
 app.get('/alertBoth', (req, res) => {
     if (req.query.header && req.query.status && (powerState || (!powerState && config.powerOnWithText))) {
         const header = req.query.header;
         const status = req.query.status;
 
         simpleMode = false;
-        centerUsed = true;
         if (!powerState) {
             setPower(true, 3);
         }
