@@ -560,9 +560,7 @@ app.get('/alertCenter', (req, res) => {
 
         simpleMode = false;
         centerUsed = true;
-        if (!powerState) {
-            setPower(true, 3);
-        }
+        setPower(true, 3);
         writeLine("", {x: 0, y: 0, clear: true});
         writeLine("", {x: 0, y: 2, clear: true});
         writeLineAuto(header, {x: 0, y: 1, clear: true});
@@ -586,9 +584,8 @@ app.get('/alertBoth', (req, res) => {
         const status = req.query.status;
 
         simpleMode = false;
-        if (!powerState) {
-            setPower(true, 3);
-        }
+        centerUsed = false;
+        setPower(true, 3);
         writeLineAuto(header, {x: 0, y: 0, clear: true});
         writeLine(status, {x: 0, y: 2, clear: true});
         if (config.clock) {
