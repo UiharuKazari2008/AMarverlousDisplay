@@ -112,14 +112,36 @@ function writeLine(text, opts) {
     } else {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
-    port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+    if (opts.raw) {
+        port.write(text, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+    } else {
+        text.split('$$').map(line => {
+            if (line.substring(line.length - 1) === "@") {
+                port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            } else {
+                port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+            }
+        })
+    }
+}
+function getTextLength(text) {
+    let textLength = 0;
+    text.split('$$').map(line => {
+        if (line.substring(line.length - 1) === "@") {
+            textLength += line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).length
+        } else {
+            textLength += line.length
+        }
+    })
+    return textLength
 }
 // Write a line to the display and options
 // If line is to long then it will auto scroll
 // Mainly used when the clock is on the display
 // See options for Scroll
 function writeLineAuto(text, opts) {
-    if ((text.length > 13 && !(opts && opts.y === 0)) || (text.length > 20 && !(opts && opts.y === 2))) {
+    const textLength = getTextLength(text);
+    if ((textLength > 13 && !(opts && opts.y === 0)) || (textLength > 20 && !(opts && opts.y === 2))) {
         scrollLine(text, {
             x: 0,
             y: 2,
@@ -200,11 +222,20 @@ function scrollLine(text, opts) {
         port.write(new Uint8Array(Buffer.from(['0x02'])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
     }
     port.write(staticCommands.scroll_set, (err) => { if (err) { console.error('Error on write: ', err.message) } });
-    const bufferText = new Uint8Array(Buffer.from(text.padEnd(text.length + (opts.padding || 0))));
     const byteArrayL = new Uint8Array(1);
-    byteArrayL[0] = bufferText.length;
+    byteArrayL[0] = getTextLength(text) + (opts.padding || 0);
     port.write(byteArrayL, (err) => { if (err) { console.error('Error on write: ', err.message) } });
-    port.write(bufferText, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+    text.split('$$').map((line,i,a) => {
+        if (line.substring(line.length - 1) === "@") {
+            port.write(new Uint8Array(Buffer.from([...line.substring(0, line.length - 1).split(/(..)/g).filter(s => s).map(s => "0x" + s)])), (err) => { if (err) { console.error('Error on write: ', err.message) } });
+        } else  {
+            port.write(line, (err) => { if (err) { console.error('Error on write: ', err.message) } });
+        }
+        if (i + 1 === a.length && opts.padding) {
+            console.log(Array(opts.padding).fill(['0x81', '0x40']).reduce((a, b) => a.concat(b)))
+            port.write(Array(opts.padding).fill(['0x81', '0x40']).reduce((a, b) => a.concat(b)), (err) => { if (err) { console.error('Error on write: ', err.message) } });
+        }
+    })
     port.write(staticCommands.scroll_start, (err) => { if (err) { console.error('Error on write: ', err.message) } });
 }
 // Create a scroll box to display a line of scrolling raw text bytes
@@ -265,10 +296,10 @@ function writeClock() {
     if (centerUsed) {
 
     } else if (simpleMode) {
-        writeLine(new Uint8Array(Buffer.from(time)), {x: 60, y: 1})
+        writeLine(new Uint8Array(Buffer.from(time)), {x: 60, y: 1, raw: true})
     } else {
         time = time.padStart(time.length + 1)
-        writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0})
+        writeLine(new Uint8Array(Buffer.from(time)), {x: config.clock.x || 0, y: config.clock.y || 0, raw: true})
     }
 }
 // Start the clock refresh timer
@@ -563,7 +594,7 @@ app.get('/alertBoth', (req, res) => {
         if (config.clock) {
             let time = moment().format(config.clock.format || "HH:mm")
             time = time.padStart(time.length + 1)
-            writeLine(new Uint8Array(Buffer.from(time)), {x: 110, y: 2})
+            writeLine(new Uint8Array(Buffer.from(time)), {x: 110, y: 2, raw: true})
         }
         clearTimeout(autoHideTimer);
         autoHideTimer = null;
